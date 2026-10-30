@@ -1,0 +1,88 @@
+# XcodeGen specification — on a Mac: brew install xcodegen && xcodegen generate
+name: AndroMac
+options:
+  bundleIdPrefix: com.andromac
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+targets:
+  AndroMac:
+    type: application
+    platform: macOS
+    sources:
+      - path: AndroMac
+        excludes:
+          - "**/*.md"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andromac.app
+        INFOPLIST_FILE: Config/Info-App.plist
+        CODE_SIGN_ENTITLEMENTS: Config/AndroMac.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        PRODUCT_NAME: AndroMac
+    dependencies:
+      - target: AndroMacFileProvider
+        embed: true
+      - target: AndroMacXPC
+        embed: true
+    scheme:
+      testTargets:
+        - AndroMacTests
+
+  AndroMacFileProvider:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: AndroMacFileProvider
+      - path: AndroMac/Shared
+      - path: AndroMac/Diagnostics/PipelineMetrics.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andromac.app.FileProvider
+        INFOPLIST_FILE: Config/Info-FileProvider.plist
+        CODE_SIGN_ENTITLEMENTS: Config/AndroMacFileProvider.entitlements
+        PRODUCT_NAME: AndroMacFileProvider
+        SKIP_INSTALL: YES
+
+  AndroMacXPC:
+    type: xpc-service
+    platform: macOS
+    sources:
+      - path: AndroMacXPC
+      - path: AndroMac
+        excludes:
+          - "App/**"
+          - "UI/**"
+          - "**/*.md"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andromac.bridge
+        INFOPLIST_FILE: Config/Info-XPC.plist
+        PRODUCT_NAME: AndroMacXPC
+        SKIP_INSTALL: YES
+
+  AndroMacTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: AndroMacTests
+    dependencies:
+      - target: AndroMac
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andromac.tests
+
+  AndroMacIntegrationTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: AndroMacIntegrationTests
+    dependencies:
+      - target: AndroMac
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.andromac.integrationtests
